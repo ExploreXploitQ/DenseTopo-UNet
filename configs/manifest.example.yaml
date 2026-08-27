@@ -1,0 +1,26 @@
+schema_version: 1
+experiment: example-topology-restoration
+
+volume:
+  shape: [32, 64, 96]
+  dtype: float32
+  byte_order: little
+  axis_order: zyx
+
+samples:
+  - id: volume-001
+    split: train
+    decompressed: ../data/volume-001.lossy.f32
+    reference: ../data/volume-001.reference.f32
+    false_cases: ../labels/volume-001.false-cases.csv
+    critical_points: ../labels/volume-001.critical-points.csv
+  - id: volume-002
+    split: validation
+    decompressed: ../data/volume-002.lossy.f32
+    reference: ../data/volume-002.reference.f32
+    false_cases: ../labels/volume-002.false-cases.csv
+    critical_points: ../labels/volume-002.critical-points.csv
+  - id: volume-003
+    split: test
+    decompressed: ../data/volume-003.lossy.f32
+    reference: ../data/volume-003.reference.f32
