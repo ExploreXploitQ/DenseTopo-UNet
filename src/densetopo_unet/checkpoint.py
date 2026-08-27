@@ -144,7 +144,7 @@ def _check_compatibility(
     expected_config: ExperimentConfig | Mapping[str, Any],
 ) -> None:
     expected = _config_mapping(expected_config)
-    for section in ("model", "compression", "normalization"):
+    for section in ("model", "compression", "normalization", "loss"):
         if checkpoint_config.get(section) != expected.get(section):
             label = "model configuration" if section == "model" else f"{section} configuration"
             raise CheckpointError(f"checkpoint {label} does not match the expected configuration")

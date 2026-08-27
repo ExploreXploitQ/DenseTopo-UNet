@@ -266,7 +266,7 @@ def train(
     scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=5)
     use_amp = config.training.mixed_precision and device.type == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
-    loss_weights = LossWeights()
+    loss_weights = LossWeights(**asdict(config.loss))
 
     start_epoch = 1
     best_score = math.inf

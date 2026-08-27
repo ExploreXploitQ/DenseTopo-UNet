@@ -33,6 +33,17 @@ model:
   patch_size: [8, 8, 8]
   base_channels: 2
   correction_scale: 0.75
+loss:
+  mse_mix: 0.7
+  charbonnier_mix: 0.3
+  gradient: 0.1
+  critical: 10.0
+  topology: 5.0
+  gate: 0.2
+  error_bound: 25.0
+  correction: 0.005
+  gate_negative: 0.02
+  error_bound_tail: 5.0
 training:
   epochs: 1
   batch_size: 1

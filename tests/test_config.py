@@ -25,6 +25,17 @@ model:
   patch_size: [8, 16, 16]
   base_channels: 4
   correction_scale: 0.75
+loss:
+  mse_mix: 0.7
+  charbonnier_mix: 0.3
+  gradient: 0.1
+  critical: 10.0
+  topology: 5.0
+  gate: 0.2
+  error_bound: 25.0
+  correction: 0.005
+  gate_negative: 0.02
+  error_bound_tail: 5.0
 training:
   epochs: 2
   batch_size: 2
@@ -56,6 +67,8 @@ def test_load_experiment_config_resolves_valid_3d_settings(tmp_path: Path) -> No
     assert config.volume.shape == (16, 24, 32)
     assert config.model.patch_size == (8, 16, 16)
     assert config.compression.absolute_error_bound == pytest.approx(1.0e-4)
+    assert config.loss.topology == pytest.approx(5.0)
+    assert config.loss.error_bound == pytest.approx(25.0)
     assert config.training.device == "cpu"
     assert config.to_dict()["normalization"]["mode"] == "max_abs"
 

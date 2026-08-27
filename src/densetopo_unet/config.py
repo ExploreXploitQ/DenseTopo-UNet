@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Mapping, TypeVar, cast
 
@@ -48,6 +48,20 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
+class LossConfig:
+    mse_mix: float = 0.7
+    charbonnier_mix: float = 0.3
+    gradient: float = 0.10
+    critical: float = 10.0
+    topology: float = 5.0
+    gate: float = 0.20
+    error_bound: float = 25.0
+    correction: float = 0.005
+    gate_negative: float = 0.02
+    error_bound_tail: float = 5.0
+
+
+@dataclass(frozen=True)
 class TrainingConfig:
     epochs: int = 1000
     batch_size: int = 4
@@ -74,6 +88,7 @@ class ExperimentConfig:
     normalization: NormalizationConfig
     model: ModelConfig
     training: TrainingConfig
+    loss: LossConfig = field(default_factory=LossConfig)
 
     def to_dict(self) -> dict[str, Any]:
         """Return a checkpoint-safe representation containing only primitives."""
@@ -120,6 +135,12 @@ def _positive_float(value: object, location: str) -> float:
     return float(value)
 
 
+def _nonnegative_float(value: object, location: str) -> float:
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or float(value) < 0:
+        raise ConfigError(f"{location} must be a nonnegative number")
+    return float(value)
+
+
 def _positive_int(value: object, location: str, *, allow_zero: bool = False) -> int:
     minimum = 0 if allow_zero else 1
     if not isinstance(value, int) or isinstance(value, bool) or value < minimum:
@@ -142,6 +163,7 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
         "topology",
         "normalization",
         "model",
+        "loss",
         "training",
     }
     _check_keys(root, "configuration", sections, sections)
@@ -217,6 +239,29 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
         correction_scale=_positive_float(model_raw["correction_scale"], "model.correction_scale"),
     )
 
+    loss_raw = _require_mapping(root["loss"], "loss")
+    loss_keys = {
+        "mse_mix",
+        "charbonnier_mix",
+        "gradient",
+        "critical",
+        "topology",
+        "gate",
+        "error_bound",
+        "correction",
+        "gate_negative",
+        "error_bound_tail",
+    }
+    _check_keys(loss_raw, "loss", loss_keys, loss_keys)
+    loss = LossConfig(
+        **{
+            key: _nonnegative_float(loss_raw[key], f"loss.{key}")
+            for key in loss_keys
+        }
+    )
+    if abs(loss.mse_mix + loss.charbonnier_mix - 1.0) > 1.0e-6:
+        raise ConfigError("loss.mse_mix and loss.charbonnier_mix must sum to 1")
+
     training_raw = _require_mapping(root["training"], "training")
     training_keys = {
         "epochs",
@@ -288,7 +333,7 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
             "training.topology_warmup_end must be greater than or equal to the start"
         )
 
-    return ExperimentConfig(volume, compression, topology, normalization, model, training)
+    return ExperimentConfig(volume, compression, topology, normalization, model, training, loss)
 
 
 def load_experiment_config(path: Path) -> ExperimentConfig:
@@ -299,4 +344,3 @@ def load_experiment_config(path: Path) -> ExperimentConfig:
     except (OSError, yaml.YAMLError) as exc:
         raise ConfigError(f"cannot read configuration {path}: {exc}") from exc
     return _parse_experiment_mapping(raw)
-
