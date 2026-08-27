@@ -244,7 +244,7 @@ equivalent entry point.
 densetopo validate-manifest --manifest PATH
 densetopo train --config PATH --manifest PATH --output NEW_DIRECTORY
 densetopo infer --checkpoint PATH --input PATH --shape D H W --output PATH
-densetopo evaluate --manifest PATH --checkpoint PATH --split test --output NEW_DIRECTORY
+densetopo evaluate --manifest PATH --restored-root PATH --split test --output NEW_DIRECTORY
 densetopo inspect-checkpoint --checkpoint PATH
 ```
 
@@ -262,6 +262,12 @@ The inference CLI obtains error-bound, normalization, patch, correction-scale,
 and value-domain settings from the checkpoint. It requires explicit input shape
 because a headerless file cannot encode dimensions. It writes an output file
 and a JSON provenance record without requesting reference information.
+
+The evaluation CLI reads restored files from
+`RESTORED_ROOT/<sample-id>.restored.f32` and compares them with manifest
+references. Optional paired `--baseline-topology-dir` and
+`--restored-topology-dir` arguments aggregate externally generated `FP`, `FN`,
+and `FT` summary JSON files. Supplying only one topology directory is an error.
 
 ## 8. Repository Structure
 
