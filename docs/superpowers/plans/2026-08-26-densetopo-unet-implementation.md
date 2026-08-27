@@ -125,6 +125,7 @@ class VolumeConfig:
     axis_order: Literal["zyx"] = "zyx"
     value_domain: Literal["signed", "nonnegative"] = "signed"
 
+
 @dataclass(frozen=True)
 class ExperimentConfig:
     volume: VolumeConfig
@@ -133,6 +134,7 @@ class ExperimentConfig:
     normalization: NormalizationConfig
     model: ModelConfig
     training: TrainingConfig
+
 
 def load_experiment_config(path: Path) -> ExperimentConfig:
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -191,6 +193,7 @@ def test_manifest_resolves_paths_relative_to_manifest(tmp_path: Path) -> None:
     manifest = load_manifest(manifest_path, volume_fixture())
     assert manifest.samples[0].decompressed == (tmp_path / "data/input.f32").resolve()
 
+
 def test_validate_raw_volume_rejects_wrong_byte_count(tmp_path: Path) -> None:
     path = tmp_path / "short.f32"
     np.zeros(31, dtype="<f4").tofile(path)
@@ -209,11 +212,13 @@ Expected: FAIL because manifest and raw-I/O functions do not exist.
 def raw_dtype(config: VolumeConfig) -> np.dtype[np.float32]:
     return np.dtype("<f4" if config.byte_order == "little" else ">f4")
 
+
 def validate_raw_volume(path: Path, config: VolumeConfig) -> None:
     expected = math.prod(config.shape) * np.dtype(np.float32).itemsize
     observed = path.stat().st_size
     if observed != expected:
         raise ValueError(f"{path}: expected {expected} bytes, observed {observed}")
+
 
 def open_raw_volume(path: Path, config: VolumeConfig, mode: str = "r") -> np.memmap:
     validate_raw_volume(path, config)
@@ -277,6 +282,7 @@ class ModelOutput:
     restored: torch.Tensor
     correction_ratio: torch.Tensor
     gate: torch.Tensor
+
 
 def forward(self, normalized_input: Tensor, decompressed: Tensor, xi: float) -> ModelOutput:
     features = self.decode(self.encode(normalized_input))
@@ -351,8 +357,13 @@ bound tail from the worst 0.1 percent of elements per sample.
 
 ```python
 OFFSETS_26 = torch.tensor(
-    [(z, y, x) for z in (-1, 0, 1) for y in (-1, 0, 1) for x in (-1, 0, 1)
-     if (z, y, x) != (0, 0, 0)],
+    [
+        (z, y, x)
+        for z in (-1, 0, 1)
+        for y in (-1, 0, 1)
+        for x in (-1, 0, 1)
+        if (z, y, x) != (0, 0, 0)
+    ],
     dtype=torch.long,
 )
 ```
@@ -390,6 +401,7 @@ git commit -m "feat: add topology-aware training objective"
 def test_max_abs_normalization_supports_signed_values() -> None:
     volume = np.array([-4.0, 0.0, 2.0], dtype=np.float32)
     assert normalization_scale(volume, "max_abs", 1.0e-12) == pytest.approx(4.0)
+
 
 def test_same_seed_and_epoch_select_same_patch(synthetic_manifest, experiment_config) -> None:
     left = TopologyPatchDataset(synthetic_manifest, experiment_config, "train", 4, 17, False)
@@ -725,11 +737,10 @@ git commit -m "feat: expose DenseTopo-UNet command line tools"
 def test_synthetic_generator_writes_complete_training_contract(tmp_path: Path) -> None:
     manifest_path = generate_dataset(tmp_path, shape=(8, 16, 16), seed=2026)
     manifest = yaml.safe_load(manifest_path.read_text())
-    assert {sample["split"] for sample in manifest["samples"]} == {
-        "train", "validation", "test"
-    }
-    assert all((manifest_path.parent / sample["decompressed"]).exists()
-               for sample in manifest["samples"])
+    assert {sample["split"] for sample in manifest["samples"]} == {"train", "validation", "test"}
+    assert all(
+        (manifest_path.parent / sample["decompressed"]).exists() for sample in manifest["samples"]
+    )
 ```
 
 - [ ] **Step 2: Run tests and verify the generator is missing**
@@ -808,11 +819,15 @@ def test_readme_states_decompressed_input_and_no_pretrained_weights() -> None:
     assert "No pretrained checkpoint" in readme
     assert "[D, H, W]" in readme
 
+
 def test_public_text_contains_no_cjk_characters() -> None:
     roots = [Path("README.md"), Path("MODEL_CARD.md"), Path("docs"), Path("src")]
-    text = "\n".join(path.read_text(encoding="utf-8") for root in roots
-                     for path in ([root] if root.is_file() else root.rglob("*"))
-                     if path.is_file() and path.suffix in {".md", ".py"})
+    text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for root in roots
+        for path in ([root] if root.is_file() else root.rglob("*"))
+        if path.is_file() and path.suffix in {".md", ".py"}
+    )
     assert not re.search(r"[\u3400-\u9fff]", text)
 ```
 

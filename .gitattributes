@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.svg text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+*.ckpt binary
+*.f32 binary
+*.npy binary
+*.npz binary
+*.pt binary
+*.pth binary
+*.raw binary

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
+  <title id="title">DenseTopo-UNet architecture and information boundary</title>
+  <desc id="desc">One decompressed scalar field passes through a four-level gated residual 3D U-Net. Reference values and topology labels connect only to the training objective.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7fbff"/><stop offset="1" stop-color="#edf6f5"/></linearGradient>
+    <linearGradient id="encoder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3468a9"/><stop offset="1" stop-color="#173b70"/></linearGradient>
+    <linearGradient id="decoder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16a394"/><stop offset="1" stop-color="#087266"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#263b52"/></marker>
+    <marker id="dashed-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#9b4f24"/></marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#14243a" flood-opacity="0.18"/></filter>
+  </defs>
+  <rect x="8" y="8" width="1484" height="744" rx="28" fill="url(#background)" stroke="#c9d8e5" stroke-width="2"/>
+  <text x="60" y="58" fill="#10243e" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="30" font-weight="700">Deployment path: one decompressed volume, one input channel</text>
+  <g font-family="Inter,Segoe UI,Arial,sans-serif" text-anchor="middle" filter="url(#shadow)">
+    <rect x="55" y="105" width="185" height="105" rx="16" fill="#fff" stroke="#55718d" stroke-width="2"/>
+    <text x="147" y="143" fill="#17334f" font-size="18" font-weight="700">Decompressed field</text><text x="147" y="174" fill="#415d75" font-size="16">float32 [D,H,W]</text><text x="147" y="197" fill="#415d75" font-size="14">no reference at inference</text>
+    <rect x="285" y="105" width="185" height="105" rx="16" fill="#fff" stroke="#55718d" stroke-width="2"/>
+    <text x="377" y="143" fill="#17334f" font-size="18" font-weight="700">Normalize</text><text x="377" y="174" fill="#415d75" font-size="16">max-absolute scale</text><text x="377" y="197" fill="#415d75" font-size="14">[B,1,Dp,Hp,Wp]</text>
+    <rect x="520" y="90" width="330" height="260" rx="20" fill="#fff" stroke="#335979" stroke-width="2"/>
+    <text x="685" y="124" fill="#17334f" font-size="20" font-weight="750">Dense 3D U-Net</text>
+    <rect x="548" y="150" width="58" height="145" rx="9" fill="url(#encoder)"/><rect x="619" y="170" width="58" height="125" rx="9" fill="url(#encoder)"/><rect x="690" y="190" width="58" height="105" rx="9" fill="url(#encoder)"/><rect x="761" y="210" width="58" height="85" rx="9" fill="#102b56"/>
+    <text x="577" y="318" fill="#29445d" font-size="14">12</text><text x="648" y="318" fill="#29445d" font-size="14">24</text><text x="719" y="318" fill="#29445d" font-size="14">48</text><text x="790" y="318" fill="#29445d" font-size="14">96</text>
+    <path d="M577 156 C620 125 747 125 790 214" fill="none" stroke="#86a7ca" stroke-width="3" stroke-dasharray="7 5"/><path d="M648 176 C684 153 756 159 790 214" fill="none" stroke="#86a7ca" stroke-width="3" stroke-dasharray="7 5"/><path d="M719 196 C744 180 773 192 790 214" fill="none" stroke="#86a7ca" stroke-width="3" stroke-dasharray="7 5"/>
+    <text x="685" y="342" fill="#5c7083" font-size="13">3D convolution · GroupNorm · SiLU · skip connections</text>
+    <rect x="900" y="105" width="205" height="105" rx="16" fill="#fff" stroke="#0d8679" stroke-width="2"/>
+    <text x="1002" y="139" fill="#12665f" font-size="18" font-weight="700">Two output heads</text><text x="1002" y="170" fill="#356d68" font-size="16">correction ratio</text><text x="1002" y="194" fill="#356d68" font-size="16">spatial gate</text>
+    <rect x="1155" y="105" width="285" height="105" rx="16" fill="#fff" stroke="#0d8679" stroke-width="2"/>
+    <text x="1297" y="139" fill="#12665f" font-size="18" font-weight="700">Bounded residual</text><text x="1297" y="170" fill="#356d68" font-size="16">d + xi · scale · ratio · gate</text><text x="1297" y="194" fill="#356d68" font-size="16">restored float32 [D,H,W]</text>
+  </g>
+  <g fill="none" stroke="#263b52" stroke-width="3" marker-end="url(#arrow)"><path d="M240 157 H278"/><path d="M470 157 H512"/><path d="M850 157 H892"/><path d="M1105 157 H1147"/></g>
+  <rect x="55" y="405" width="1385" height="275" rx="22" fill="#fff9f3" stroke="#e2b68d" stroke-width="2"/>
+  <text x="82" y="447" fill="#793b1d" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="26" font-weight="700">Training-only supervision: never concatenated to the network input</text>
+  <g font-family="Inter,Segoe UI,Arial,sans-serif" text-anchor="middle">
+    <rect x="95" y="492" width="210" height="95" rx="14" fill="#fff" stroke="#bf7348" stroke-width="2"/><text x="200" y="530" fill="#713819" font-size="17" font-weight="700">Reference patch</text><text x="200" y="558" fill="#805c47" font-size="15">target values</text>
+    <rect x="350" y="492" width="230" height="95" rx="14" fill="#fff" stroke="#bf7348" stroke-width="2"/><text x="465" y="530" fill="#713819" font-size="17" font-weight="700">FC + extrema labels</text><text x="465" y="558" fill="#805c47" font-size="15">FP · FN · FT · max · min</text>
+    <rect x="660" y="475" width="500" height="130" rx="16" fill="#fff" stroke="#9b4f24" stroke-width="2"/><text x="910" y="510" fill="#713819" font-size="18" font-weight="700">Topology-aware compound objective</text><text x="910" y="540" fill="#805c47" font-size="14">reconstruction · gradients · critical points · 26-neighbor order</text><text x="910" y="566" fill="#805c47" font-size="14">gate supervision · error-bound excess · sparse correction</text><text x="910" y="590" fill="#9b4f24" font-size="13">local differentiable surrogate; not exact persistent topology</text>
+    <rect x="1210" y="492" width="190" height="95" rx="14" fill="#eef9f7" stroke="#0d8679" stroke-width="2"/><text x="1305" y="530" fill="#12665f" font-size="17" font-weight="700">Optimize model</text><text x="1305" y="558" fill="#356d68" font-size="15">AdamW + early stop</text>
+  </g>
+  <g fill="none" stroke="#9b4f24" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#dashed-arrow)"><path d="M305 540 H650"/><path d="M580 540 H650"/><path d="M1160 540 H1200"/><path d="M1305 492 C1305 380 825 398 760 351"/></g>
+  <text x="750" y="724" text-anchor="middle" fill="#4b6073" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16">Full-volume inference uses reflection-padded context patches and writes each 50% center core exactly once.</text>
+</svg>

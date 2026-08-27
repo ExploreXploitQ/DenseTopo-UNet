@@ -17,10 +17,13 @@ venv/
 
 # Local training and evaluation artifacts
 artifacts/
+.artifacts/
 runs/
+outputs/
 *.pt
 *.pth
 *.ckpt
+*.dat
 *.f32
 *.raw
 *.npy

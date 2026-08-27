@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this research software, cite the exact release or commit."
+title: "DenseTopo-UNet: Topology Restoration for Lossy-Decompressed 3D Scalar Fields"
+type: software
+authors:
+  - name: "DenseTopo-UNet contributors"
+repository-code: "https://github.com/ExploreXploitQ/DenseTopo-UNet"
+url: "https://github.com/ExploreXploitQ/DenseTopo-UNet"
+version: 0.1.0
+date-released: 2026-08-26
+keywords:
+  - scientific machine learning
+  - lossy compression
+  - topology restoration
+  - critical points
+  - 3D U-Net

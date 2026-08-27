@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-labelledby="title desc">
+  <title id="title">DenseTopo-UNet wordmark</title>
+  <desc id="desc">A layered scalar-field icon beside the DenseTopo-UNet name and a topology restoration subtitle.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#09152d"/><stop offset="1" stop-color="#152c50"/>
+    </linearGradient>
+    <linearGradient id="signal" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#23c9b8"/><stop offset="1" stop-color="#6f8cff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#030712" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+  <rect x="5" y="5" width="1190" height="250" rx="34" fill="url(#panel)"/>
+  <g transform="translate(58 52)" filter="url(#shadow)">
+    <path d="M16 92 L91 48 L166 92 L91 136 Z" fill="#102542" stroke="#5274a3" stroke-width="3"/>
+    <path d="M16 64 L91 20 L166 64 L91 108 Z" fill="#14375a" stroke="#6a91c4" stroke-width="3"/>
+    <path d="M16 36 L91 -8 L166 36 L91 80 Z" fill="url(#signal)" stroke="#a6fff1" stroke-width="3"/>
+    <circle cx="91" cy="36" r="10" fill="#fff4b5" stroke="#fff" stroke-width="3"/>
+    <path d="M36 136 C57 112 68 151 89 126 C111 101 123 142 147 111" fill="none" stroke="#23c9b8" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <text x="268" y="122" fill="#f4f8ff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="74" font-weight="750" letter-spacing="-2">DenseTopo-UNet</text>
+  <text x="272" y="174" fill="#99e8dc" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="25" font-weight="500" letter-spacing="2">TOPOLOGY RESTORATION AFTER LOSSY DECOMPRESSION</text>
+  <rect x="272" y="196" width="704" height="4" rx="2" fill="url(#signal)"/>
+</svg>
