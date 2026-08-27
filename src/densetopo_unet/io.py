@@ -56,4 +56,3 @@ def validate_finite_values(path: Path, config: VolumeConfig, chunk_elements: int
         chunk = np.asarray(volume[start : start + chunk_elements])
         if not np.isfinite(chunk).all():
             raise ValueError(f"{path}: contains non-finite floating-point values")
-

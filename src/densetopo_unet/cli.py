@@ -5,8 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence, cast
+from typing import Any, cast
 
 from densetopo_unet.checkpoint import load_checkpoint
 from densetopo_unet.config import load_experiment_config
@@ -82,9 +83,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Input and output float32 byte order (default: little).",
     )
     infer_parser.add_argument("--batch-size", type=int, default=2)
-    infer_parser.add_argument(
-        "--device", choices=("auto", "cpu", "cuda"), default="auto"
-    )
+    infer_parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
 
     evaluate_parser = commands.add_parser(
         "evaluate",
@@ -92,9 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_config_manifest(evaluate_parser)
     evaluate_parser.add_argument("--restored-root", required=True, type=_path)
-    evaluate_parser.add_argument(
-        "--split", choices=("train", "validation", "test"), default="test"
-    )
+    evaluate_parser.add_argument("--split", choices=("train", "validation", "test"), default="test")
     evaluate_parser.add_argument("--output", required=True, type=_path)
     evaluate_parser.add_argument("--baseline-topology-dir", type=_path)
     evaluate_parser.add_argument("--restored-topology-dir", type=_path)
@@ -117,8 +114,7 @@ def _validate(arguments: argparse.Namespace) -> dict[str, Any]:
     config, manifest = _load_inputs(arguments)
     del config
     split_counts = {
-        split: len(manifest.by_split(cast(Split, split)))
-        for split in ("test", "train", "validation")
+        split: len(manifest.by_split(split)) for split in ("test", "train", "validation")
     }
     return {
         "valid": True,

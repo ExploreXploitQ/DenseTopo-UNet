@@ -5,9 +5,10 @@ from __future__ import annotations
 import csv
 import json
 import math
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Sequence, cast
+from typing import Any, cast
 
 import numpy as np
 
@@ -35,7 +36,10 @@ class FCSummary:
     ft: int
 
     def __post_init__(self) -> None:
-        if any(not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in (self.fp, self.fn, self.ft)):
+        if any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 0
+            for value in (self.fp, self.fn, self.ft)
+        ):
             raise ValueError("FP, FN, and FT counts must be nonnegative integers")
 
     @property
@@ -161,9 +165,7 @@ def aggregate_evaluation(rows: Sequence[EvaluationRow]) -> EvaluationSummary:
     topology_presence = [
         row.baseline_fc is not None and row.restored_fc is not None for row in rows
     ]
-    topology_absence = [
-        row.baseline_fc is None and row.restored_fc is None for row in rows
-    ]
+    topology_absence = [row.baseline_fc is None and row.restored_fc is None for row in rows]
     if not (all(topology_presence) or all(topology_absence)):
         raise ValueError("every evaluation row must consistently include or omit both FC summaries")
     baseline_fc: FCSummary | None = None
@@ -251,11 +253,19 @@ def evaluate_restored(
     flat_rows: list[dict[str, Any]] = []
     for row in rows:
         flat: dict[str, Any] = {"sample_id": row.sample_id}
-        flat.update({f"baseline_{key}": value for key, value in row.baseline_error.to_dict().items()})
-        flat.update({f"restored_{key}": value for key, value in row.restored_error.to_dict().items()})
+        flat.update(
+            {f"baseline_{key}": value for key, value in row.baseline_error.to_dict().items()}
+        )
+        flat.update(
+            {f"restored_{key}": value for key, value in row.restored_error.to_dict().items()}
+        )
         if row.baseline_fc is not None and row.restored_fc is not None:
-            flat.update({f"baseline_{key}": value for key, value in row.baseline_fc.to_dict().items()})
-            flat.update({f"restored_{key}": value for key, value in row.restored_fc.to_dict().items()})
+            flat.update(
+                {f"baseline_{key}": value for key, value in row.baseline_fc.to_dict().items()}
+            )
+            flat.update(
+                {f"restored_{key}": value for key, value in row.restored_fc.to_dict().items()}
+            )
         flat_rows.append(flat)
     with (output_dir / "metrics_by_sample.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(flat_rows[0]))

@@ -4,7 +4,6 @@ import pytest
 
 from densetopo_unet.config import ConfigError, load_experiment_config
 
-
 VALID_CONFIG = """
 volume:
   shape: [16, 24, 32]
@@ -85,5 +84,5 @@ def test_config_rejects_patch_incompatible_with_three_downsamplings(
 def test_config_rejects_unknown_keys(tmp_path: Path) -> None:
     invalid = VALID_CONFIG.replace("  seed: 7", "  seed: 7\n  hidden_option: true")
 
-    with pytest.raises(ConfigError, match="unknown keys.*hidden_option"):
+    with pytest.raises(ConfigError, match=r"unknown keys.*hidden_option"):
         load_experiment_config(write_config(tmp_path, invalid))

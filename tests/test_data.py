@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 import torch
-
 from conftest import write_manifest
+
 from densetopo_unet.config import (
     CompressionConfig,
     ExperimentConfig,

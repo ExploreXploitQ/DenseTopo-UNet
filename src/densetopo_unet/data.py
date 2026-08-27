@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import numpy as np
 import torch
@@ -19,7 +19,6 @@ from densetopo_unet.manifest import (
     load_critical_points,
     load_false_cases,
 )
-
 
 NormalizationMode = Literal["max_abs", "positive_max"]
 
@@ -64,10 +63,10 @@ def _topology_index(record: SampleRecord, shape: tuple[int, int, int]) -> _Topol
     coordinate_weights: dict[tuple[int, int, int], float] = {}
     for case, weight in (("fn", 5.0), ("fp", 3.0), ("ft", 4.0)):
         for coordinate in cases[case]:
-            key = tuple(int(value) for value in coordinate)
+            key = (int(coordinate[0]), int(coordinate[1]), int(coordinate[2]))
             coordinate_weights[key] = max(coordinate_weights.get(key, 0.0), weight)
     for coordinate in extrema:
-        key = tuple(int(value) for value in coordinate)
+        key = (int(coordinate[0]), int(coordinate[1]), int(coordinate[2]))
         coordinate_weights[key] = max(coordinate_weights.get(key, 0.0), 1.0)
     if coordinate_weights:
         coordinates = np.asarray(list(coordinate_weights), dtype=np.int32)
@@ -111,9 +110,7 @@ class TopologyPatchDataset(Dataset[dict[str, torch.Tensor | str]]):
         self.seed = int(seed)
         self.augment = bool(augment)
         self.epoch = 0
-        self._indices = [
-            _topology_index(record, config.volume.shape) for record in self.records
-        ]
+        self._indices = [_topology_index(record, config.volume.shape) for record in self.records]
         self._memmaps: dict[Path, np.memmap] = {}
         self._scales: dict[Path, float] = {}
 
@@ -170,26 +167,29 @@ class TopologyPatchDataset(Dataset[dict[str, torch.Tensor | str]]):
                 [rng.integers(0, dimension) for dimension in self.config.volume.shape],
                 dtype=np.int32,
             )
-        return tuple(
+        start = tuple(
             int(np.clip(value - patch // 2, 0, full - patch))
             for value, patch, full in zip(
                 center,
                 self.patch_size,
                 self.config.volume.shape,
+                strict=False,
             )
         )
+        return cast(tuple[int, int, int], start)
 
     def __getitem__(self, item: int) -> dict[str, torch.Tensor | str]:
-        rng = np.random.default_rng(
-            self.seed + self.epoch * self.samples_per_epoch + int(item)
-        )
+        rng = np.random.default_rng(self.seed + self.epoch * self.samples_per_epoch + int(item))
         record_index = int(rng.integers(len(self.records)))
         record = self.records[record_index]
         start = self._choose_start(record_index, rng)
         slices = tuple(
-            slice(origin, origin + size) for origin, size in zip(start, self.patch_size)
+            slice(origin, origin + size)
+            for origin, size in zip(start, self.patch_size, strict=False)
         )
-        decompressed = np.asarray(self._volume(record.decompressed)[slices], dtype=np.float32).copy()
+        decompressed = np.asarray(
+            self._volume(record.decompressed)[slices], dtype=np.float32
+        ).copy()
         assert record.reference is not None
         target = np.asarray(self._volume(record.reference)[slices], dtype=np.float32).copy()
 

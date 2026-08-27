@@ -64,4 +64,3 @@ samples:
         encoding="utf-8",
     )
     return manifest
-

@@ -10,7 +10,6 @@ import torch.nn.functional as functional
 
 from densetopo_unet.model import ModelOutput
 
-
 OFFSETS_26 = torch.tensor(
     [
         (z, y, x)
@@ -105,9 +104,7 @@ def topology_order_loss(
 
     valid = target_difference.abs() > 1.0e-5
     margin = torch.clamp(0.5 * target_difference.abs(), min=1.0e-4, max=0.05)
-    violation = functional.relu(
-        margin - target_difference.sign() * predicted_difference
-    )
+    violation = functional.relu(margin - target_difference.sign() * predicted_difference)
     violation = torch.where(valid, violation, torch.zeros_like(violation))
     point_violation = violation.max(dim=1).values
     point_weight = topo_weight[batch, 0, z_coord, y_coord, x_coord]
@@ -138,9 +135,7 @@ def compute_losses(
 
     normalized_error = (restored - target) / float(xi)
     signal = ((target != 0) | (decompressed != 0)).to(dtype=restored.dtype)
-    topology_neighborhood = functional.max_pool3d(
-        topo_weight, kernel_size=3, stride=1, padding=1
-    )
+    topology_neighborhood = functional.max_pool3d(topo_weight, kernel_size=3, stride=1, padding=1)
     spatial_weight = 1.0 + signal + topology_neighborhood
     weight_sum = spatial_weight.sum().clamp_min(1.0)
 
@@ -168,8 +163,7 @@ def compute_losses(
     if false_weight_sum.detach().item() > 0:
         critical_penalty = (
             weights.mse_mix * normalized_error.square()
-            + weights.charbonnier_mix
-            * torch.sqrt(normalized_error.square() + 1.0e-6)
+            + weights.charbonnier_mix * torch.sqrt(normalized_error.square() + 1.0e-6)
         )
         critical = (critical_penalty * false_weight).sum() / false_weight_sum
     else:
@@ -185,27 +179,21 @@ def compute_losses(
     negative = ~positive
     gate_safe = output.gate.float().clamp(1.0e-4, 1.0 - 1.0e-4)
     gate_positive = (
-        -torch.log(gate_safe[positive]).mean()
-        if positive.any().item()
-        else restored.sum() * 0.0
+        -torch.log(gate_safe[positive]).mean() if positive.any().item() else restored.sum() * 0.0
     )
     gate_negative = (
-        -torch.log1p(-gate_safe[negative]).mean()
-        if negative.any().item()
-        else restored.sum() * 0.0
+        -torch.log1p(-gate_safe[negative]).mean() if negative.any().item() else restored.sum() * 0.0
     )
     gate_supervision = gate_positive + weights.gate_negative * gate_negative
 
     excess = functional.relu(normalized_error.abs() - 1.0)
     error_bound_mean = excess.square().mean()
     flattened = excess.flatten(1)
-    tail_count = max(1, int(math.ceil(flattened.shape[1] * 0.001)))
+    tail_count = max(1, math.ceil(flattened.shape[1] * 0.001))
     error_bound_tail = torch.topk(flattened, tail_count, dim=1).values.square().mean()
     error_bound = error_bound_mean + weights.error_bound_tail * error_bound_tail
 
-    correction_regularization = (
-        output.correction_ratio.abs().mean() + 0.1 * output.gate.mean()
-    )
+    correction_regularization = output.correction_ratio.abs().mean() + 0.1 * output.gate.mean()
     total = (
         reconstruction
         + weights.gradient * gradient

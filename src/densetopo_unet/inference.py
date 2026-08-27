@@ -7,12 +7,12 @@ import json
 import os
 import tempfile
 import time
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Literal, Mapping, cast
+from typing import Any, Literal, cast
 
 import numpy as np
-import torch
 
 from densetopo_unet import __version__
 from densetopo_unet.checkpoint import CheckpointError, load_checkpoint
@@ -58,7 +58,7 @@ class InferenceRecord:
     package_version: str
 
     def to_dict(self) -> dict[str, Any]:
-        return cast(dict[str, Any], asdict(self))
+        return asdict(self)
 
 
 def file_sha256(path: Path) -> str:
@@ -87,6 +87,20 @@ def _triple(value: object, location: str) -> tuple[int, int, int]:
     if any(item <= 0 for item in result):
         raise CheckpointError(f"checkpoint {location} dimensions must be positive")
     return cast(tuple[int, int, int], result)
+
+
+def _positive_float(mapping: Mapping[str, Any], key: str, location: str) -> float:
+    value = mapping.get(key)
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or value <= 0:
+        raise CheckpointError(f"checkpoint {location} must be a positive number")
+    return float(value)
+
+
+def _positive_int(mapping: Mapping[str, Any], key: str, location: str) -> int:
+    value = mapping.get(key)
+    if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+        raise CheckpointError(f"checkpoint {location} must be a positive integer")
+    return value
 
 
 def _write_raw_atomic(path: Path, values: np.ndarray, dtype: np.dtype[np.float32]) -> None:
@@ -132,10 +146,18 @@ def restore_file(request: InferenceRequest) -> InferenceRecord:
     mode = str(normalization_section.get("mode"))
     if mode not in {"max_abs", "positive_max"}:
         raise CheckpointError("checkpoint normalization mode is unsupported")
-    epsilon = float(normalization_section.get("epsilon"))
-    xi = float(compression_section.get("absolute_error_bound"))
-    correction_scale = float(model_section.get("correction_scale"))
-    base_channels = int(model_section.get("base_channels"))
+    epsilon = _positive_float(normalization_section, "epsilon", "config.normalization.epsilon")
+    xi = _positive_float(
+        compression_section,
+        "absolute_error_bound",
+        "config.compression.absolute_error_bound",
+    )
+    correction_scale = _positive_float(
+        model_section,
+        "correction_scale",
+        "config.model.correction_scale",
+    )
+    base_channels = _positive_int(model_section, "base_channels", "config.model.base_channels")
     patch_size = _triple(model_section.get("patch_size"), "config.model.patch_size")
 
     volume_config = VolumeConfig(

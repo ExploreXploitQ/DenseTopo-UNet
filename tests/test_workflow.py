@@ -51,39 +51,45 @@ def test_cpu_training_and_single_file_inference_workflow(tmp_path: Path) -> None
     config_path = root / "experiment.yaml"
     run_path = tmp_path / "run"
 
-    assert main(
-        [
-            "train",
-            "--config",
-            str(config_path),
-            "--manifest",
-            str(manifest_path),
-            "--output",
-            str(run_path),
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "train",
+                "--config",
+                str(config_path),
+                "--manifest",
+                str(manifest_path),
+                "--output",
+                str(run_path),
+            ]
+        )
+        == 0
+    )
 
     raw = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     test_sample = next(sample for sample in raw["samples"] if sample["split"] == "test")
     input_path = root / test_sample["decompressed"]
     restored_path = tmp_path / "restored.f32"
-    assert main(
-        [
-            "infer",
-            "--checkpoint",
-            str(run_path / "best.pt"),
-            "--input",
-            str(input_path),
-            "--shape",
-            "8",
-            "16",
-            "16",
-            "--output",
-            str(restored_path),
-            "--device",
-            "cpu",
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "infer",
+                "--checkpoint",
+                str(run_path / "best.pt"),
+                "--input",
+                str(input_path),
+                "--shape",
+                "8",
+                "16",
+                "16",
+                "--output",
+                str(restored_path),
+                "--device",
+                "cpu",
+            ]
+        )
+        == 0
+    )
 
     restored = np.fromfile(restored_path, dtype="<f4")
     assert restored.size == 8 * 16 * 16

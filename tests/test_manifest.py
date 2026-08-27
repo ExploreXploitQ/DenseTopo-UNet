@@ -2,8 +2,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from conftest import write_manifest
+
 from densetopo_unet.config import VolumeConfig
 from densetopo_unet.io import open_raw_volume, validate_raw_volume
 from densetopo_unet.manifest import (
@@ -34,9 +34,7 @@ def test_validate_raw_volume_rejects_wrong_byte_count(
         validate_raw_volume(path, volume_config)
 
 
-def test_open_raw_volume_preserves_zyx_shape(
-    tmp_path: Path, volume_config: VolumeConfig
-) -> None:
+def test_open_raw_volume_preserves_zyx_shape(tmp_path: Path, volume_config: VolumeConfig) -> None:
     path = tmp_path / "volume.f32"
     np.arange(256, dtype="<f4").tofile(path)
 
@@ -56,7 +54,7 @@ def test_manifest_rejects_missing_training_labels(
         encoding="utf-8",
     )
 
-    with pytest.raises(ManifestError, match="critical_points.*required"):
+    with pytest.raises(ManifestError, match=r"critical_points.*required"):
         load_manifest(path, volume_config)
 
 

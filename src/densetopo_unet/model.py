@@ -101,6 +101,7 @@ class DenseTopoUNet3D(nn.Module):
         self.up0 = Up(2 * channels, channels, channels)
         self.head = nn.Conv3d(channels, 2, kernel_size=1)
         nn.init.zeros_(self.head.weight)
+        assert self.head.bias is not None
         nn.init.zeros_(self.head.bias)
 
     @staticmethod

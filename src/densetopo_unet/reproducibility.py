@@ -7,7 +7,8 @@ import platform
 import random
 import sys
 import warnings
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -81,8 +82,7 @@ def environment_report() -> dict[str, Any]:
                     "ignore", message=".*initialize NVML.*", category=UserWarning
                 )
                 device_names = [
-                    torch.cuda.get_device_name(index)
-                    for index in range(torch.cuda.device_count())
+                    torch.cuda.get_device_name(index) for index in range(torch.cuda.device_count())
                 ]
         except (OSError, RuntimeError):
             device_names = []

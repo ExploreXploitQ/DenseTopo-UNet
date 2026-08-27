@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import csv
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, cast
+from typing import Any, Literal, cast
 
 import numpy as np
 import yaml
@@ -112,9 +113,7 @@ def _sample(value: object, index: int, root: Path, volume: VolumeConfig) -> Samp
     decompressed = _resolve_optional(root, raw["decompressed"], f"samples[{index}].decompressed")
     assert decompressed is not None
     reference = _resolve_optional(root, raw.get("reference"), f"samples[{index}].reference")
-    false_cases = _resolve_optional(
-        root, raw.get("false_cases"), f"samples[{index}].false_cases"
-    )
+    false_cases = _resolve_optional(root, raw.get("false_cases"), f"samples[{index}].false_cases")
     critical_points = _resolve_optional(
         root, raw.get("critical_points"), f"samples[{index}].critical_points"
     )
@@ -167,7 +166,9 @@ def load_manifest(path: Path, volume: VolumeConfig) -> DataManifest:
     samples_raw = raw["samples"]
     if not isinstance(samples_raw, list) or not samples_raw:
         raise ManifestError("samples must be a nonempty list")
-    samples = tuple(_sample(item, index, resolved.parent, volume) for index, item in enumerate(samples_raw))
+    samples = tuple(
+        _sample(item, index, resolved.parent, volume) for index, item in enumerate(samples_raw)
+    )
     ids = [sample.sample_id for sample in samples]
     duplicates = sorted({sample_id for sample_id in ids if ids.count(sample_id) > 1})
     if duplicates:
@@ -175,12 +176,14 @@ def load_manifest(path: Path, volume: VolumeConfig) -> DataManifest:
     return DataManifest(1, experiment, resolved, samples)
 
 
-def _coordinate(row: Mapping[str, str], line: int, shape: tuple[int, int, int]) -> tuple[int, int, int]:
+def _coordinate(
+    row: Mapping[str, str], line: int, shape: tuple[int, int, int]
+) -> tuple[int, int, int]:
     try:
         point = (int(row["z"]), int(row["y"]), int(row["x"]))
     except (KeyError, TypeError, ValueError) as exc:
         raise ManifestError(f"line {line}: z, y, and x must be integers") from exc
-    if any(value < 0 or value >= limit for value, limit in zip(point, shape)):
+    if any(value < 0 or value >= limit for value, limit in zip(point, shape, strict=False)):
         raise ManifestError(f"line {line}: coordinate {point} is outside shape {shape}")
     return point
 
@@ -209,8 +212,7 @@ def load_false_cases(path: Path, shape: tuple[int, int, int]) -> dict[str, np.nd
             raise ManifestError(f"line {line}: case must be fp, fn, or ft")
         grouped[case].append(_coordinate(row, line, shape))
     return {
-        case: np.asarray(points, dtype=np.int32).reshape(-1, 3)
-        for case, points in grouped.items()
+        case: np.asarray(points, dtype=np.int32).reshape(-1, 3) for case, points in grouped.items()
     }
 
 
@@ -219,9 +221,7 @@ def load_critical_points(path: Path, shape: tuple[int, int, int]) -> np.ndarray:
 
     points: list[tuple[int, int, int]] = []
     allowed = {"local_maximum", "local_minimum"}
-    for line, row in enumerate(
-        _csv_rows(path, ["critical_type", "z", "y", "x"]), start=2
-    ):
+    for line, row in enumerate(_csv_rows(path, ["critical_type", "z", "y", "x"]), start=2):
         critical_type = row["critical_type"]
         if critical_type not in allowed:
             raise ManifestError(
@@ -229,4 +229,3 @@ def load_critical_points(path: Path, shape: tuple[int, int, int]) -> np.ndarray:
             )
         points.append(_coordinate(row, line, shape))
     return np.asarray(points, dtype=np.int32).reshape(-1, 3)
-

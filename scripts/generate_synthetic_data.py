@@ -9,7 +9,6 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-
 ERROR_BOUND = 0.02
 
 
@@ -19,7 +18,7 @@ def _validate_shape(shape: tuple[int, int, int]) -> None:
 
 
 def _coordinate(value: float, size: int) -> int:
-    return int(round((value + 1.0) * 0.5 * (size - 1)))
+    return round((value + 1.0) * 0.5 * (size - 1))
 
 
 def _analytic_field(shape: tuple[int, int, int], phase: float) -> np.ndarray:
@@ -49,10 +48,10 @@ def _write_labels(
     shape: tuple[int, int, int],
 ) -> tuple[Path, Path]:
     positive = tuple(
-        _coordinate(value, size) for value, size in zip((-0.35, -0.15, 0.25), shape)
+        _coordinate(value, size) for value, size in zip((-0.35, -0.15, 0.25), shape, strict=False)
     )
     negative = tuple(
-        _coordinate(value, size) for value, size in zip((0.30, 0.25, -0.30), shape)
+        _coordinate(value, size) for value, size in zip((0.30, 0.25, -0.30), shape, strict=False)
     )
     center = tuple(size // 2 for size in shape)
     false_cases = root / f"{sample_id}.false-cases.csv"

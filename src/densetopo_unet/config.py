@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Literal, Mapping, TypeVar, cast
+from typing import Any, Literal, TypeVar, cast
 
 import yaml
 
@@ -93,7 +94,7 @@ class ExperimentConfig:
     def to_dict(self) -> dict[str, Any]:
         """Return a checkpoint-safe representation containing only primitives."""
 
-        return cast(dict[str, Any], asdict(self))
+        return asdict(self)
 
 
 T = TypeVar("T")
@@ -178,7 +179,9 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
             Literal["little", "big"],
             _choice(volume_raw["byte_order"], "volume.byte_order", {"little", "big"}),
         ),
-        axis_order=cast(Literal["zyx"], _choice(volume_raw["axis_order"], "volume.axis_order", {"zyx"})),
+        axis_order=cast(
+            Literal["zyx"], _choice(volume_raw["axis_order"], "volume.axis_order", {"zyx"})
+        ),
         value_domain=cast(
             Literal["signed", "nonnegative"],
             _choice(volume_raw["value_domain"], "volume.value_domain", {"signed", "nonnegative"}),
@@ -231,7 +234,7 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
     patch_size = _triple(model_raw["patch_size"], "model.patch_size")
     if any(item % 8 != 0 for item in patch_size):
         raise ConfigError("model.patch_size dimensions must be divisible by 8")
-    if any(patch > full for patch, full in zip(patch_size, volume.shape)):
+    if any(patch > full for patch, full in zip(patch_size, volume.shape, strict=False)):
         raise ConfigError("model.patch_size must not exceed volume.shape")
     model = ModelConfig(
         patch_size=patch_size,
@@ -254,10 +257,7 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
     }
     _check_keys(loss_raw, "loss", loss_keys, loss_keys)
     loss = LossConfig(
-        **{
-            key: _nonnegative_float(loss_raw[key], f"loss.{key}")
-            for key in loss_keys
-        }
+        **{key: _nonnegative_float(loss_raw[key], f"loss.{key}") for key in loss_keys}
     )
     if abs(loss.mse_mix + loss.charbonnier_mix - 1.0) > 1.0e-6:
         raise ConfigError("loss.mse_mix and loss.charbonnier_mix must sum to 1")
@@ -299,13 +299,9 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
         num_workers=_positive_int(
             training_raw["num_workers"], "training.num_workers", allow_zero=True
         ),
-        learning_rate=_positive_float(
-            training_raw["learning_rate"], "training.learning_rate"
-        ),
+        learning_rate=_positive_float(training_raw["learning_rate"], "training.learning_rate"),
         weight_decay=_positive_float(training_raw["weight_decay"], "training.weight_decay"),
-        minimum_epochs=_positive_int(
-            training_raw["minimum_epochs"], "training.minimum_epochs"
-        ),
+        minimum_epochs=_positive_int(training_raw["minimum_epochs"], "training.minimum_epochs"),
         early_stopping_patience=_positive_int(
             training_raw["early_stopping_patience"], "training.early_stopping_patience"
         ),
@@ -329,9 +325,7 @@ def _parse_experiment_mapping(raw: object) -> ExperimentConfig:
     if training.minimum_epochs > training.epochs:
         raise ConfigError("training.minimum_epochs must not exceed training.epochs")
     if training.topology_warmup_end < training.topology_warmup_start:
-        raise ConfigError(
-            "training.topology_warmup_end must be greater than or equal to the start"
-        )
+        raise ConfigError("training.topology_warmup_end must be greater than or equal to the start")
 
     return ExperimentConfig(volume, compression, topology, normalization, model, training, loss)
 

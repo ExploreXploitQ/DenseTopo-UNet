@@ -6,8 +6,8 @@ import sys
 from pathlib import Path
 
 import pytest
-
 from conftest import write_manifest
+
 from densetopo_unet.cli import build_parser, main
 
 
@@ -66,7 +66,9 @@ training:
     return path
 
 
-def test_infer_help_enforces_deployment_information_boundary(capsys: pytest.CaptureFixture[str]) -> None:
+def test_infer_help_enforces_deployment_information_boundary(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     parser = build_parser()
 
     with pytest.raises(SystemExit, match="0"):

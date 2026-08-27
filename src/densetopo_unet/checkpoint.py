@@ -5,14 +5,14 @@ from __future__ import annotations
 import hashlib
 import os
 import tempfile
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Mapping, cast
+from typing import Any, cast
 
 import torch
 
 from densetopo_unet.config import ExperimentConfig
-
 
 CHECKPOINT_SCHEMA_VERSION = 1
 
@@ -40,7 +40,7 @@ class CheckpointState:
     rng_state: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
-        return cast(dict[str, Any], asdict(self))
+        return asdict(self)
 
 
 def manifest_fingerprint(path: Path) -> str:

@@ -54,9 +54,7 @@ def test_fc_summary_loader_rejects_missing_key(tmp_path: Path) -> None:
 
 def test_aggregate_evaluation_sums_fc_and_restored_violations() -> None:
     zero = compute_error_metrics(np.zeros(2), np.zeros(2), 1.0e-4, 1.0)
-    one_violation = compute_error_metrics(
-        np.zeros(2), np.array([0.0, 2.0e-4]), 1.0e-4, 1.0
-    )
+    one_violation = compute_error_metrics(np.zeros(2), np.array([0.0, 2.0e-4]), 1.0e-4, 1.0)
     rows = [
         EvaluationRow("a", zero, one_violation, FCSummary(3, 2, 0), FCSummary(2, 1, 0)),
         EvaluationRow("b", zero, zero, FCSummary(2, 1, 0), FCSummary(1, 1, 0)),

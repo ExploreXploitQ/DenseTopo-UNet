@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import itertools
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 import numpy as np
 import torch
@@ -33,7 +33,7 @@ def make_axis_plan(length: int, patch: int) -> AxisPlan:
         raise ValueError("patch must be divisible by four for center-core tiling")
     halo = patch // 4
     core = patch - 2 * halo
-    count = int(math.ceil(length / core))
+    count = math.ceil(length / core)
     covered = count * core
     right_pad = halo + covered - length
     starts = tuple(index * core for index in range(count))
@@ -46,11 +46,15 @@ def _validate_volume_and_patch(
 ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
     if decompressed.ndim != 3:
         raise ValueError("decompressed must have shape [D, H, W]")
-    shape = tuple(int(value) for value in decompressed.shape)
+    shape = (
+        int(decompressed.shape[0]),
+        int(decompressed.shape[1]),
+        int(decompressed.shape[2]),
+    )
     if len(patch_size) != 3:
         raise ValueError("patch_size must contain [Dp, Hp, Wp]")
-    patch = tuple(int(value) for value in patch_size)
-    for full, part in zip(shape, patch):
+    patch = (int(patch_size[0]), int(patch_size[1]), int(patch_size[2]))
+    for full, part in zip(shape, patch, strict=False):
         make_axis_plan(full, part)
     return shape, patch
 
@@ -75,7 +79,7 @@ def restore_volume_tiled(
     if xi <= 0:
         raise ValueError("xi must be positive")
 
-    plans = tuple(make_axis_plan(full, part) for full, part in zip(shape, patch))
+    plans = tuple(make_axis_plan(full, part) for full, part in zip(shape, patch, strict=False))
     pad_width = tuple((plan.left_pad, plan.right_pad) for plan in plans)
     padded = np.pad(np.asarray(decompressed, dtype=np.float32), pad_width, mode="reflect")
     restored = np.empty(shape, dtype=np.float32)
@@ -108,19 +112,21 @@ def restore_volume_tiled(
         for local_index, job in enumerate(batch_jobs):
             axis_indices = tuple(item[0] for item in job)
             output_starts = tuple(
-                index * plan.core for index, plan in zip(axis_indices, plans)
+                index * plan.core for index, plan in zip(axis_indices, plans, strict=False)
             )
             output_stops = tuple(
                 min(full, start + plan.core)
-                for full, start, plan in zip(shape, output_starts, plans)
+                for full, start, plan in zip(shape, output_starts, plans, strict=False)
             )
-            lengths = tuple(stop - start for start, stop in zip(output_starts, output_stops))
+            lengths = tuple(
+                stop - start for start, stop in zip(output_starts, output_stops, strict=False)
+            )
             output_slices = tuple(
-                slice(start, stop) for start, stop in zip(output_starts, output_stops)
+                slice(start, stop) for start, stop in zip(output_starts, output_stops, strict=False)
             )
             source_slices = tuple(
                 slice(plan.left_pad, plan.left_pad + length)
-                for plan, length in zip(plans, lengths)
+                for plan, length in zip(plans, lengths, strict=False)
             )
             restored[output_slices] = prediction_array[local_index][source_slices]
             write_count[output_slices] += 1
@@ -129,6 +135,7 @@ def restore_volume_tiled(
         minimum = int(write_count.min())
         maximum = int(write_count.max())
         raise RuntimeError(
-            f"internal tiling error: output write count must be one, observed [{minimum}, {maximum}]"
+            "internal tiling error: output write count must be one, "
+            f"observed [{minimum}, {maximum}]"
         )
     return restored

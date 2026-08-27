@@ -5,9 +5,10 @@ from __future__ import annotations
 import csv
 import json
 import math
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Mapping, cast
+from typing import Any, cast
 
 import torch
 from torch.optim import AdamW
@@ -25,7 +26,7 @@ from densetopo_unet.checkpoint import (
 )
 from densetopo_unet.config import ExperimentConfig
 from densetopo_unet.data import TopologyPatchDataset
-from densetopo_unet.losses import LossBreakdown, LossWeights, compute_losses
+from densetopo_unet.losses import LossWeights, compute_losses
 from densetopo_unet.manifest import DataManifest
 from densetopo_unet.model import DenseTopoUNet3D
 from densetopo_unet.reproducibility import (
