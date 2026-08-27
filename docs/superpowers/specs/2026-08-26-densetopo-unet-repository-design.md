@@ -393,8 +393,8 @@ associated paper or institution. As in the reference PTU-Net repository, the
 initial release does not invent a license grant; the README explicitly states
 the resulting copyright restriction.
 
-After all local checks pass, implementation commits are pushed to the existing
-`origin/main` remote requested by the maintainer. The release contains source,
-tests, synthetic fixtures generated on demand, configuration examples, and
-documentation, but no pretrained checkpoint or research data.
-
+The current scope is local repository creation only. Implementation may be
+committed to the local Git history, but no `git push`, GitHub Release, pull
+request, or remote API mutation is permitted. The local repository contains
+source, tests, synthetic fixtures generated on demand, configuration examples,
+and documentation, but no pretrained checkpoint or research data.
