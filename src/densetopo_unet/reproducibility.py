@@ -73,6 +73,19 @@ def environment_report() -> dict[str, Any]:
     """Return machine-readable runtime provenance without external commands."""
 
     cuda_available = cuda_is_usable()
+    device_names: list[str] = []
+    if cuda_available:
+        try:
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore", message=".*initialize NVML.*", category=UserWarning
+                )
+                device_names = [
+                    torch.cuda.get_device_name(index)
+                    for index in range(torch.cuda.device_count())
+                ]
+        except (OSError, RuntimeError):
+            device_names = []
     return {
         "python": sys.version,
         "platform": platform.platform(),
@@ -81,9 +94,5 @@ def environment_report() -> dict[str, Any]:
         "cuda_available": cuda_available,
         "cuda_runtime": torch.version.cuda,
         "visible_cuda_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
-        "device_names": [
-            torch.cuda.get_device_name(index) for index in range(torch.cuda.device_count())
-        ]
-        if cuda_available
-        else [],
+        "device_names": device_names,
     }
