@@ -1,0 +1,40 @@
+volume:
+  shape: [32, 64, 96]
+  dtype: float32
+  byte_order: little
+  axis_order: zyx
+  value_domain: signed
+
+compression:
+  absolute_error_bound: 1.0e-4
+
+topology:
+  persistence_threshold: 0.06
+  match_radius: 0
+  neighborhood: cube26
+
+normalization:
+  mode: max_abs
+  epsilon: 1.0e-12
+
+model:
+  patch_size: [16, 32, 32]
+  base_channels: 12
+  correction_scale: 0.75
+
+training:
+  epochs: 1000
+  batch_size: 4
+  validation_batch_size: 4
+  samples_per_epoch: 256
+  validation_samples: 128
+  num_workers: 0
+  learning_rate: 2.0e-4
+  weight_decay: 1.0e-5
+  minimum_epochs: 300
+  early_stopping_patience: 120
+  topology_warmup_start: 20
+  topology_warmup_end: 120
+  mixed_precision: true
+  seed: 2026
+  device: auto

@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "densetopo-unet"
+version = "0.1.0"
+description = "Gated 3D U-Net for topology restoration of lossy-decompressed scalar fields"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "DenseTopo-UNet contributors" }]
+keywords = [
+  "scientific-machine-learning",
+  "lossy-compression",
+  "topology",
+  "critical-points",
+  "u-net",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=1.24",
+  "PyYAML>=6.0",
+  "torch>=2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "coverage[toml]>=7.4",
+  "mypy>=1.8",
+  "pytest>=8.0",
+  "pytest-cov>=4.1",
+  "ruff>=0.6",
+  "types-PyYAML>=6.0",
+]
+
+[project.scripts]
+densetopo = "densetopo_unet.cli:main"
+
+[project.urls]
+Documentation = "https://github.com/ExploreXploitQ/DenseTopo-UNet/tree/main/docs"
+Issues = "https://github.com/ExploreXploitQ/DenseTopo-UNet/issues"
+Repository = "https://github.com/ExploreXploitQ/DenseTopo-UNet"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/densetopo_unet"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+markers = [
+  "gpu: requires a CUDA-capable GPU",
+  "integration: exercises a complete train or inference workflow",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["densetopo_unet"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["densetopo_unet"]
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+check_untyped_defs = true
+
